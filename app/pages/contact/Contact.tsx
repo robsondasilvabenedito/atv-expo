@@ -4,11 +4,13 @@ import React, { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { storeStateType } from "../../core/redux"
 import { Message } from "../../core/model/message"
-import { addMessage } from "../../core/redux/redux.store"
-import MessageLabel from "./components/messageLabe"
+import MessageLabel from "./components/messageLabel"
 import SendButton from "./components/sendButton"
-import { useRoute } from "@react-navigation/native"
 import MyHeader from "../../core/components/header"
+import { Contact } from "../../core/model/contact"
+import { Group } from "../../core/model/group"
+import { getContactById } from "../../core/util/util"
+import { getMessages } from "../../core/redux/redux.store"
 
 const labelWidth: number = 86
 const buttonWidth: number = 100 - labelWidth
@@ -47,26 +49,60 @@ const styles = StyleSheet.create({
 })
 
 const ContactHome = ({ navigation, route }: any) => {
-    const id: number = route.params?.id
+    const group: Group = route.params?.group
     const [message, setMessage] = useState("")
 
     // redux
     const stock = useSelector((state: storeStateType) => state.stock)
     const dispatch = useDispatch<any>()
 
-    let messages = stock.message
+    let contacts: Contact[] = stock.contacts
+    let messages: Message[] = stock.messages
+    let me = stock.me
+
+    // init
+    useEffect(() => {
+        init()
+    }, [])
+
+    const init = () => {
+        dispatch(getMessages({ groupId: group.id! }))
+
+        console.log(`Messages: ${messages}`)
+    }
+
+    // title name
+    let title: string = group.name
+
+    if (!group.isGroup) {
+        for (let i = 0; i < group.contacts.length; i++) {
+            if (group.contacts[i] === me.id)
+                continue
+
+            title = getContactById(contacts, group.contacts[i])?.name ?? ""
+            break
+        }
+    }
 
     // send message
     const sendMessage = () => {
-        let newMessage: Message = {
-            message: message,
-            origin: "me"
-        }
-
-        if (newMessage.message === "")
+        // validate
+        if (message === "")
             return
 
-        dispatch(addMessage(newMessage));
+        // newMessage
+        let now = new Date()
+
+        let date = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}-${now.getHours}/${now.getMinutes}/${now.getSeconds}`
+
+        let newMessage: Message = {
+            msg: message,
+            origin: me.id,
+            date: date,
+            groupId: group.id!
+        }
+
+        // send
         setMessage("")
     }
 
@@ -74,7 +110,7 @@ const ContactHome = ({ navigation, route }: any) => {
     const renderMessages: ListRenderItem<Message> = ((list) => {
         let msg = list.item
 
-        return <MessageLabel message={msg.message} origin={msg.origin} />
+        return <MessageLabel message={msg} me={me} />
     })
 
     // auto-scroll
@@ -89,7 +125,7 @@ const ContactHome = ({ navigation, route }: any) => {
     }, [messages])
 
     return <SafeAreaView style={styles.container}>
-        <MyHeader title="Contact" backButton={() => { navigation.goBack() }} />
+        <MyHeader title={title} backButton={() => { navigation.goBack() }} />
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             keyboardVerticalOffset={0}
@@ -112,8 +148,7 @@ const ContactHome = ({ navigation, route }: any) => {
                     value={message}
                     onChangeText={setMessage}
                     multiline={true}
-                    placeholder="message"
-                    keyboardType="default" />
+                    placeholder="message" />
                 <SendButton width={`${buttonWidth}%`} onPress={() => { sendMessage() }} />
             </View>
         </KeyboardAvoidingView>

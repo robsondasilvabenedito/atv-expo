@@ -13,8 +13,8 @@ const styles = StyleSheet.create({
         backgroundColor: Color.header,
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        marginTop: StatusBar.currentHeight
+        justifyContent: "space-between"
+        // marginTop: StatusBar.currentHeight
     },
     text: {
         flexGrow: 1,
@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
         // backgroundColor: "#fff",
         minWidth: 35,
         padding: 5,
-        marginHorizontal: 2
     }
 })
 
@@ -45,7 +44,7 @@ const Header = (props: HeaderProps) => {
             <></>}
         <Text style={styles.text}>{title}</Text>
         {backButton !== undefined ?
-            <View style={styles.back}/>
+            <View style={styles.back} />
             :
             <></>}
     </View>

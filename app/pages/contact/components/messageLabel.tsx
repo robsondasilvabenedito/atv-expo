@@ -1,6 +1,12 @@
 import { StyleSheet, Text, View } from "react-native"
 import Color from "../../../core/theme/colors"
 import { Message } from "../../../core/model/message"
+import { Contact } from "../../../core/model/contact"
+
+interface MessageLabelProps {
+    message: Message
+    me: Contact
+}
 
 const styles = StyleSheet.create({
     meLabel: {
@@ -37,13 +43,13 @@ const styles = StyleSheet.create({
     }
 })
 
-const MessageLabel = (props: Message) => {
+const MessageLabel = (props: MessageLabelProps) => {
     const message = props.message
-    const origin = props.origin
+    const me = props.me
 
-    return <View style={origin === "other" ? styles.otherLabel : styles.meLabel}>
-        <View style={origin === "other" ? styles.otherMessage : styles.meMessage}>
-            <Text style={{textAlign: "left"}}>{message}</Text>
+    return <View style={message.origin !== me.id ? styles.otherLabel : styles.meLabel}>
+        <View style={message.origin !== me.id ? styles.otherMessage : styles.meMessage}>
+            <Text style={{ textAlign: "left" }}>{message.msg}</Text>
         </View>
     </View>
 }
